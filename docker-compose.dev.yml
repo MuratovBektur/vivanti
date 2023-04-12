@@ -1,0 +1,84 @@
+version: '3.9'
+
+name: vue-laravel-docker-template_dev
+
+services:
+  client:
+    container_name: vue-laravel-docker-template_dev_client
+    build:
+      context: ./client
+      dockerfile: Dockerfile_dev
+    expose:
+      - 3000
+    environment: 
+      - CHOKIDAR_USEPOLLING=true
+      - HOST=0.0.0.0
+      - NODE_ENV=dev
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./client:/app
+      - ./configs/client/.env.dev:/app/.env
+
+  server:
+    build:
+      context: ./server/vendor/laravel/sail/runtimes/8.2
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: ${WWWGROUP:?}
+        WWWUSER: ${WWWUSER:?}
+    container_name: vue-laravel-docker-template_dev_server
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    expose: 
+      - 80
+    depends_on:
+      - db
+    environment:
+      WWWUSER: ${WWWUSER:?}
+      LARAVEL_SAIL: 1
+      XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
+      XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
+    volumes:
+      - ./server:/var/www/html
+      - ./configs/server/.env.dev:/var/www/html/.env
+
+  nginx:
+    image: nginx
+    restart: "no"
+    container_name: vue-laravel-docker-template_dev_nginx
+    ports:
+      - ${DOCKER_PORT:-7000}:80
+    depends_on:
+      - client
+      - server
+      - dbgate
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./nginx/dev:/etc/nginx/conf.d  
+
+  db:
+    container_name: vue-laravel-docker-template_dev_db
+    image: postgres:14
+    restart: always
+    ports:
+      - ${DB_PORT:?}:5432
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?}
+      POSTGRES_USER: ${DB_USERNAME:?}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./postgres/dev:/var/lib/postgresql/data/pgdata
+
+  dbgate:
+    image: dbgate/dbgate
+    container_name: vue-laravel-docker-template_dev_dbgate
+    restart: always
+    depends_on:
+      - db
+    expose:
+      - 3000
+    volumes:
+      - ./dbgate/dev:/root/.dbgate
+    environment:
+      WEB_ROOT: /dba
