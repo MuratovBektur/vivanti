@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\PostController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,7 +16,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return json_encode('server test');
-    // return view('welcome');
+$post_label = 'post';
+
+Route::name($post_label)->prefix($post_label)->group(function () {
+    Route::get('all', [PostController::class, 'getAll']);
+    Route::get('{post_id}/{user_id}', [PostController::class, 'getId']);
+
 });
+
+Route::post('comment/add', [CommentController::class, 'add']);
+Route::post('comment/addLike', [CommentController::class, 'addLike']);
+Route::post('comment/removeLike', [CommentController::class, 'removeLike']);

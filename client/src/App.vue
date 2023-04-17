@@ -1,7 +1,13 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+</script>
 
 <template>
-  <div>client test</div>
+  <div class="py-10 px-3 font-main min-h-screen">
+    <div class="px-6 py-6 max-w-screen-lg mx-auto">
+      <router-view></router-view>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">

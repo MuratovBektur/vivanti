@@ -44,7 +44,7 @@ Homestead.yaml
 
 auth.json
 
-/mysql
+/postgres
 /dbgate
 
 
